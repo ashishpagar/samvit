@@ -1,0 +1,14 @@
+{
+  "name": "drupal/mystocks",
+  "type": "drupal-module",
+  "description": "stocks that are going to be selected to be purchased",
+  "keywords": ["Drupal"],
+  "license": "GPL-2.0+",
+  "homepage": "http://drupal.org/project/mystocks",
+  "minimum-stability": "dev",
+  "support": {
+    "issues": "http://drupal.org/project/issues/mystocks",
+    "source": "http://cgit.drupalcode.org/mystocks"
+  },
+  "require": { }
+}

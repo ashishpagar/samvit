@@ -1,0 +1,5 @@
+name: myStocks
+type: module
+description: stocks that are going to be selected to be purchased
+core: 8.x
+package: stocks
