@@ -14,8 +14,10 @@ class OpenOffCanvasDialogCommand extends OpenDialogCommand {
   /**
    * Constructs an OpenOffCanvasDialogCommand object.
    *
-   * Drupal provides a built-in offcanvas tray for this purpose, so no selector
-   * needs to be provided.
+   * The off-canvas dialog differs from the normal modal provided by
+   * OpenDialogCommand in that a off-canvas has built in positioning and
+   * behaviours. Drupal provides a built-in off-canvas tray for this purpose,
+   * so the selector is hard-coded in the call to the parent constructor.
    *
    * @param string $title
    *   The title of the dialog.
@@ -37,19 +39,19 @@ class OpenOffCanvasDialogCommand extends OpenDialogCommand {
     $this->dialogOptions['resizable'] = 'w';
     $this->dialogOptions['draggable'] = FALSE;
     $this->dialogOptions['drupalAutoButtons'] = FALSE;
+    // @todo drupal.ajax.js does not respect drupalAutoButtons properly, pass an
+    //   empty set of buttons until https://www.drupal.org/node/2793343 is in.
+    $this->dialogOptions['buttons'] = [];
   }
 
   /**
    * {@inheritdoc}
    */
   public function render() {
-    return [
-      'command' => 'openDialog',
-      'selector' => '#drupal-offcanvas',
-      'settings' => $this->settings,
-      'data' => $this->getRenderedContent(),
-      'dialogOptions' => $this->dialogOptions,
-    ];
+    $build = parent::render();
+    $build['effect'] = 'fade';
+    $build['speed'] = 1000;
+    return $build;
   }
 
 }

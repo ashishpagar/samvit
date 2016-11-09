@@ -2,6 +2,7 @@
 
 namespace Drupal\FunctionalTests;
 
+use Drupal\Component\Utility\Html;
 use Drupal\Core\Url;
 use Drupal\Tests\BrowserTestBase;
 
@@ -81,9 +82,35 @@ class BrowserTestBaseTest extends BrowserTestBase {
     $this->assertSame('green', $value);
   }
 
+  /**
+   * Tests clickLink() functionality.
+   */
+  public function testClickLink() {
+    $this->drupalGet('test-page');
+    $this->clickLink('Visually identical test links');
+    $this->assertContains('user/login', $this->getSession()->getCurrentUrl());
+    $this->drupalGet('test-page');
+    $this->clickLink('Visually identical test links', 0);
+    $this->assertContains('user/login', $this->getSession()->getCurrentUrl());
+    $this->drupalGet('test-page');
+    $this->clickLink('Visually identical test links', 1);
+    $this->assertContains('user/register', $this->getSession()->getCurrentUrl());
+  }
+
   public function testError() {
     $this->setExpectedException('\Exception', 'User notice: foo');
     $this->drupalGet('test-error');
+  }
+
+  /**
+   * Tests legacy asserts.
+   */
+  public function testLegacyAsserts() {
+    $this->drupalGet('test-encoded');
+    $dangerous = 'Bad html <script>alert(123);</script>';
+    $sanitized = Html::escape($dangerous);
+    $this->assertNoText($dangerous);
+    $this->assertText($sanitized);
   }
 
 }

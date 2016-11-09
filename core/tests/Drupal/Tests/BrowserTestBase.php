@@ -165,6 +165,19 @@ abstract class BrowserTestBase extends \PHPUnit_Framework_TestCase {
   protected $strictConfigSchema = TRUE;
 
   /**
+   * Modules to enable.
+   *
+   * The test runner will merge the $modules lists from this class, the class
+   * it extends, and so on up the class hierarchy. It is not necessary to
+   * include modules in your list that a parent class has already declared.
+   *
+   * @var string[]
+   *
+   * @see \Drupal\Tests\BrowserTestBase::installDrupal()
+   */
+  public static $modules = [];
+
+  /**
    * An array of config object names that are excluded from schema checking.
    *
    * @var string[]
@@ -515,10 +528,11 @@ abstract class BrowserTestBase extends \PHPUnit_Framework_TestCase {
    *   The file path.
    */
   public static function filePreDeleteCallback($path) {
-    $success = @chmod($path, 0700);
-    if (!$success) {
-      trigger_error("Can not make $path writable whilst cleaning up test directory. The webserver and phpunit are probably not being run by the same user.");
-    }
+    // When the webserver runs with the same system user as phpunit, we can
+    // make read-only files writable again. If not, chmod will fail while the
+    // file deletion still works if file permissions have been configured
+    // correctly. Thus, we ignore any problems while running chmod.
+    @chmod($path, 0700);
   }
 
   /**
@@ -1200,15 +1214,10 @@ abstract class BrowserTestBase extends \PHPUnit_Framework_TestCase {
    * @see drupal_valid_test_ua()
    * @see BrowserTestBase::prepareEnvironment()
    */
-  protected function prepareDatabasePrefix() {
-    // Ensure that the generated test site directory does not exist already,
-    // which may happen with a large amount of concurrent threads and
-    // long-running tests.
-    do {
-      $suffix = mt_rand(100000, 999999);
-      $this->siteDirectory = 'sites/simpletest/' . $suffix;
-      $this->databasePrefix = 'simpletest' . $suffix;
-    } while (is_dir(DRUPAL_ROOT . '/' . $this->siteDirectory));
+  private function prepareDatabasePrefix() {
+    $test_db = new TestDatabase();
+    $this->siteDirectory = $test_db->getTestSitePath();
+    $this->databasePrefix = $test_db->getDatabasePrefix();
   }
 
   /**
@@ -1216,7 +1225,7 @@ abstract class BrowserTestBase extends \PHPUnit_Framework_TestCase {
    *
    * @see BrowserTestBase::prepareEnvironment()
    */
-  protected function changeDatabasePrefix() {
+  private function changeDatabasePrefix() {
     if (empty($this->databasePrefix)) {
       $this->prepareDatabasePrefix();
     }
@@ -1615,10 +1624,14 @@ abstract class BrowserTestBase extends \PHPUnit_Framework_TestCase {
    *
    * @param string|\Drupal\Component\Render\MarkupInterface $label
    *   Text between the anchor tags.
+   * @param int $index
+   *   (optional) The index number for cases where multiple links have the same
+   *   text. Defaults to 0.
    */
-  protected function clickLink($label) {
+  protected function clickLink($label, $index = 0) {
     $label = (string) $label;
-    $this->getSession()->getPage()->clickLink($label);
+    $links = $this->getSession()->getPage()->findAll('named', ['link', $label]);
+    $links[$index]->click();
   }
 
   /**
