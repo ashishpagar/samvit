@@ -1,5 +1,5 @@
 INSTALLATION
-------------1
+------------
 
 Gulp and Bower are required to manage assets.
 
